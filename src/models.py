@@ -21,8 +21,8 @@ class Todo(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "user": self.email,
-            "label": self.email,
-            "user": self.email,
+            "user": self.user,
+            "label": self.label,
+            "done": self.done,
             # do not serialize the password, its a security breach
         }

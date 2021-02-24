@@ -40,20 +40,39 @@ def handle_hello():
 def handle_new():
     todo = request.json
     new_todo = Todo(label=todo["label"],done=todo["done"],user=todo["user"])
-    db.session.add(todo)
+    db.session.add(new_todo)
     db.session.commit()
     todos = Todo.query.all()
     response_body = list(map(lambda x: x.serialize(), todos))
     return jsonify(response_body), 200 
 
-@app.route('/member/<int:todo_id>', methods=['DELETE'])
+@app.route('/todos/<int:todo_id>', methods=['DELETE'])
 def handle_delete(todo_id):
     body = request.json
-    removed = jackson_family.delete_member(member_id)
-    response_body = {
-        "Deleted members": removed
-    }
-    return jsonify(response_body), 200
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        raise APIException('User not found', status_code=404)
+    db.session.delete(todo)
+    db.session.commit()
+    todos = Todo.query.all()
+    response_body = list(map(lambda x: x.serialize(), todos))
+    return jsonify(response_body), 200 
+
+@app.route('/todos/<int:todo_id>', methods=['PUT'])
+def handle_edit(todo_id):
+    body = request.json
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        raise APIException('User not found', status_code=404)
+    if "label" in body:
+        todo.label = body["label"]
+    if "done" in body:
+        todo.done  = body["done"]
+    db.session.commit()
+    todos = Todo.query.all()
+    response_body = list(map(lambda x: x.serialize(), todos))
+    return jsonify(response_body), 200 
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
